@@ -1,6 +1,10 @@
 import os
 import json
+import logging
+import chromadb
 from typing import List, Dict, Any
+
+logger = logging.getLogger(__name__)
 
 class ProjectMemory:
     """
@@ -25,17 +29,38 @@ class ProjectMemory:
 
 class SemanticMemory:
     """
-    Wrapper around Vector DB (Chroma/Qdrant) for long-term document understanding.
-    Allows agents to query "What did we decide about X in the previous milestone?"
+    100x Upgrade: Real Vector Database integration using ChromaDB.
+    Allows agents to query historical decisions and deep document archives.
     """
-    def __init__(self, collection_name: str):
-        # In real implementation: self.client = chromadb.Client()
-        self.collection_name = collection_name
+    def __init__(self, collection_name: str, db_path: str = "./.chromadb"):
+        logger.info(f"Initializing ChromaDB Vector Store at {db_path}...")
+        self.client = chromadb.PersistentClient(path=db_path)
+        self.collection = self.client.get_or_create_collection(name=collection_name)
         
-    def store_document(self, text: str, metadata: Dict[str, Any]):
-        # chunk text, generate embeddings, store in vector DB
-        pass
+    def store_document(self, text: str, metadata: Dict[str, Any], doc_id: str):
+        """Embeds and stores document chunks in the vector DB."""
+        logger.info(f"Storing vector chunk: {doc_id}")
+        self.collection.add(
+            documents=[text],
+            metadatas=[metadata],
+            ids=[doc_id]
+        )
         
     def search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
-        # embed query, search vector db, return closest chunks
-        return []
+        """Queries the vector DB for semantically relevant chunks."""
+        logger.info(f"Performing semantic search: '{query}'")
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=top_k
+        )
+        
+        # Format results for the Agent
+        formatted_results = []
+        if results and "documents" in results and results["documents"]:
+            for i in range(len(results["documents"][0])):
+                formatted_results.append({
+                    "id": results["ids"][0][i],
+                    "content": results["documents"][0][i],
+                    "metadata": results["metadatas"][0][i]
+                })
+        return formatted_results

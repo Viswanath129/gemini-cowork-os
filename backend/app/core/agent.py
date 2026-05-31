@@ -87,10 +87,20 @@ class AgentFactory:
     def create_agent(role: AgentRole, goal_context: Optional[str] = None) -> BaseAgent:
         # Define prompts and tools based on role
         if role == AgentRole.STRATEGIC_ADVISOR:
+            system_instruction = """
+            You are the Strategic Advisor Prime. 
+            Your goal is to optimize the Human Principal's life and work trajectory, not just execute tasks.
+            
+            CORE DIRECTIVES:
+            1. CHALLENGE ASSUMPTIONS: When a goal is submitted, ask 'Why?'. Identify if there are better, lower-cost, or higher-impact alternatives.
+            2. DETECT GOAL DRIFT: Compare current activity against the long-term Mission Brief. Flag if the user or swarm is optimizing a low-impact vanity task.
+            3. KILL MISSIONS EARLY: If a project lacks clear success criteria or the 'Cost of Being Wrong' outweighs the 'Probability of Success', recommend an immediate ABORT.
+            4. BIAS FOR IMPACT: Push the Human Principal towards high-leverage activities and away from 'busy work'.
+            """
             return GeminiAgent(
                 name="StrategicAdvisor_Prime",
                 role=role,
-                system_prompt="You are the Strategic Advisor. Your sole job is to challenge assumptions, find blind spots, detect goal drift, ask 'why', and prevent wasted work.",
+                system_prompt=system_instruction,
                 tools=[]
             )
         elif role == AgentRole.RESEARCHER:

@@ -28,7 +28,23 @@ Autonomy scales based on trust. Every action is evaluated on:
 - **Confidence**
 - **Impact**
 - **Risk**
-- **Permission Level** (e.g., Delete file = High Risk; Create report = Low Risk).
+- **Permission Level**
 
-## The Strategic Advisor
-Instead of building 1,000 specialized micro-agents, we introduce the **Strategic Advisor**. Its sole job is to challenge assumptions, find blind spots, detect goal drift, ask "why", and prevent wasted work. This is where true coworker behavior emerges.
+## Layer 6: Context Decay Engine (The Filter)
+To prevent "Context Bloat" and signal drowning in noise, we implement **Memory Ranking**:
+- **Importance**: Manual user tag or Agent-assigned value.
+- **Recency**: Time since last access.
+- **Usage Frequency**: How often is this fact used for decisions?
+- **Confidence**: Does reality still support this fact?
+*Unused or low-confidence memories slowly decay and are moved to deep-archive to keep the "Active Context" sharp.*
+
+## Brain-Body Separation
+For 100x stability, we enforce a strict architectural boundary:
+- **The Brain (Gemini CLI)**: Reasoning, Planning, Judgment, Strategic Advice.
+- **The Body (OS/Kernel)**: Storage (ChromaDB), Scheduling, Permissions, Tool Execution, Governance.
+*The Brain suggests the move; the Body executes the deterministic rules.*
+
+## The Ultimate 100x Multiplier: Goal Continuity
+We move from "Task -> Done" to **"Goal -> Milestone -> Continuous Progress."** 
+- Example: *"Get a top AI internship."*
+- The OS tracks opportunities, identifies skill gaps, drafts resumes, and manages follow-ups for **weeks or months**, providing a daily "Proactive Intelligence" report without the user needing to re-prompt the objective.

@@ -94,6 +94,7 @@ class GoalInterpreter:
         return plan
 
 from backend.app.core.observability import ObservabilityLayer, GoalGuardian
+from backend.app.core.swarm import ReflectionEngine
 
 class ExecutionEngine:
     """Runs the execution plan via the Kernel, managing persistence and coordination."""
@@ -105,15 +106,16 @@ class ExecutionEngine:
         self.blackboard = SharedBlackboard()
         self.obs = ObservabilityLayer()
         self.guardian = GoalGuardian(self)
+        self.reflector = ReflectionEngine() # Act -> Verify -> Repair
         
     async def execute(self):
-        logger.info(f"Execution Engine starting for goal: {self.plan.goal}")
+        logger.info(f"Autonomous Execution starting for goal: {self.plan.goal}")
         
         step_count = 0
         while True:
             step_count += 1
             
-            # 1. Goal Re-anchoring (Every 5 steps)
+            # 1. Goal Re-anchoring (Strategic Drift Check)
             if step_count % 5 == 0:
                 is_on_track = await self.guardian.check_drift(
                     self.plan.goal, 
@@ -121,42 +123,47 @@ class ExecutionEngine:
                     await self.blackboard.get_knowledge_base()
                 )
                 if not is_on_track:
-                    logger.warning("Goal Guardian detected drift. Re-planning required.")
-                    # self.replan() logic here
+                    logger.warning("Goal Guardian detected drift. Initiating autonomous correction.")
             
-            # 2. Kernel-driven step with Deadlock Detection
-            stepped = await self.kernel.run_step(self.plan, self._run_task)
+            # 2. Kernel-driven step (Handles Checkpointing and Deadlocks)
+            stepped = await self.kernel.run_step(self.plan, self._run_task_with_reflection)
             
             if not stepped:
+                # All tasks completed or system blocked
                 break
 
-    async def _run_task(self, task: Task):
+    async def _run_task_with_reflection(self, task: Task):
+        """The core Autonomous Loop: Execute -> Verify -> Repair."""
         self.obs.log_event("TASK_START", task.assigned_role, self.goal_id, {"description": task.description})
         task.status = TaskStatus.IN_PROGRESS
         
         try:
-            agent = AgentFactory.create_agent(task.assigned_role)
-            context = {"blackboard": self.blackboard, "workspace_dir": os.getcwd()}
+            # Wrap the agent execution in the Reflection Engine
+            result = await self.reflector.execute_with_reflection(
+                task, 
+                self._execute_agent_logic(task),
+                max_retries=3
+            )
             
-            # Mock reasoning loop with telemetry
-            start_time = time.time()
-            result = await agent.run_task(task.description, context)
-            latency = time.time() - start_time
-            
-            # Log usage and metadata
-            self.obs.log_event("TASK_END", task.assigned_role, self.goal_id, {
-                "tokens": 1500, # Mock token count
-                "cost": 0.015,  # Mock cost
-                "latency": latency
-            })
-            
-            await self.blackboard.post_finding(f"result_{task.id}", result, agent.name)
+            await self.blackboard.post_finding(f"result_{task.id}", result, task.assigned_role)
             task.result = result
             task.status = TaskStatus.COMPLETED
+            self.obs.log_event("TASK_END", task.assigned_role, self.goal_id, {"status": "SUCCESS"})
             
         except Exception as e:
+            logger.error(f"Autonomous Loop Failure on task {task.id}: {str(e)}")
             self.obs.log_event("TASK_FAILURE", task.assigned_role, self.goal_id, {"error": str(e)})
             task.status = TaskStatus.FAILED
+
+    async def _execute_agent_logic(self, task: Task) -> str:
+        """Helper to run the actual agent call."""
+        agent = AgentFactory.create_agent(task.assigned_role)
+        context = {
+            "blackboard": self.blackboard, 
+            "workspace_dir": os.getcwd(),
+            "goal_id": self.goal_id
+        }
+        return await agent.run_task(task.description, context)
 
 class Orchestrator:
     """Main entry point. Orchestrates the Kernel and Engine."""

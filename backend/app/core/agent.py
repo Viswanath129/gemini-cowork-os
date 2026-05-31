@@ -86,7 +86,14 @@ class AgentFactory:
     @staticmethod
     def create_agent(role: AgentRole, goal_context: Optional[str] = None) -> BaseAgent:
         # Define prompts and tools based on role
-        if role == AgentRole.RESEARCHER:
+        if role == AgentRole.STRATEGIC_ADVISOR:
+            return GeminiAgent(
+                name="StrategicAdvisor_Prime",
+                role=role,
+                system_prompt="You are the Strategic Advisor. Your sole job is to challenge assumptions, find blind spots, detect goal drift, ask 'why', and prevent wasted work.",
+                tools=[]
+            )
+        elif role == AgentRole.RESEARCHER:
             return GeminiAgent(
                 name="ResearchAgent_01",
                 role=role,

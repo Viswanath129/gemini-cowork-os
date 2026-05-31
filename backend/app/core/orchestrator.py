@@ -2,8 +2,9 @@ import asyncio
 import networkx as nx
 import logging
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
+from pydantic import BaseModel
 from backend.app.core.models import ExecutionPlan, TaskStatus, Task
 from backend.app.core.agent import AgentFactory
 from backend.app.core.kernel import ExecutionKernel, SharedBlackboard

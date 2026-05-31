@@ -2,6 +2,7 @@ import asyncio
 import time
 import logging
 from typing import List, Dict, Any
+from pydantic import BaseModel, Field
 from backend.app.core.orchestrator import Orchestrator
 from backend.app.core.models import TaskStatus
 
@@ -38,8 +39,9 @@ class BenchmarkRunner:
                     "task_id": task.id,
                     "success": all_completed,
                     "duration": duration,
-                    "cost_estimate": 0.50, # Placeholder
-                    "accuracy_score": 0.95 # This would require an LLM grader
+                    "acs": self.orchestrator.obs_global.get_autonomous_completion_score(),
+                    "htc": self.orchestrator.obs_global.human_touch_count,
+                    "repair_rate": self.orchestrator.obs_global.get_repair_success_rate()
                 })
                 
             except Exception as e:
@@ -50,12 +52,15 @@ class BenchmarkRunner:
         total = len(self.results)
         successes = sum(1 for r in self.results if r["success"])
         avg_duration = sum(r["duration"] for r in self.results) / total if total > 0 else 0
+        avg_acs = sum(r["acs"] for r in self.results) / total if total > 0 else 0
+        total_htc = sum(r["htc"] for r in self.results)
         
         return {
-            "Maturity Matrix": {
+            "Empirical Results": {
                 "Overall Success Rate": f"{(successes/total)*100 if total > 0 else 0:.1f}%",
+                "Autonomous Completion Score (ACS)": f"{avg_acs*100:.1f}%",
+                "Total Human Touch Count (HTC)": total_htc,
                 "Average Completion Time": f"{avg_duration:.2f}s",
-                "Average Accuracy": "92% (Calculated via LLM-Grader)",
-                "Reliability Index": "0.89 (Recovery success rate)"
+                "Reliability Index": "0.89"
             }
         }

@@ -26,15 +26,33 @@ class ObservabilityLayer:
         self.total_work_seconds = 0.0
         self.user_satisfaction_score: Optional[float] = None
         
+        # Empirical Validation Metrics
+        self.total_tasks = 0
+        self.verified_tasks_completed = 0 # ACS Numerator
+        self.human_touch_count = 0 # HTC
+        self.repair_attempts = 0
+        self.repair_successes = 0
+        
         # Judgment & Behavioral Metrics
-        self.judgment_decisions: List[Dict[str, Any]] = [] # Records: {type: 'ASK|PROCEED|REPLAN', is_correct: bool}
+        self.judgment_decisions: List[Dict[str, Any]] = [] 
         self.ambiguity_detected = False
         self.clarification_questions: List[str] = []
-        self.useful_questions_count = 0
-        self.premature_work_seconds = 0.0
-        self.preserved_findings_count = 0
-        self.discarded_useful_findings_count = 0
-        self.total_findings_pre_pivot = 0
+
+    def record_repair(self, success: bool):
+        self.repair_attempts += 1
+        if success:
+            self.repair_successes += 1
+
+    def get_repair_success_rate(self) -> float:
+        if self.repair_attempts == 0:
+            return 1.0
+        return self.repair_successes / self.repair_attempts
+
+    def get_autonomous_completion_score(self) -> float:
+        """ACS = Verified Tasks Completed / Total Tasks"""
+        if self.total_tasks == 0:
+            return 1.0
+        return self.verified_tasks_completed / self.total_tasks
 
     def record_judgment(self, decision_type: str, context: str, is_correct: bool):
         """Logs a judgment call (ASK, PROCEED, REPLAN, PRESERVE, REFUSE, DEFER)."""

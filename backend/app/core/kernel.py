@@ -1,5 +1,6 @@
 import json
 import logging
+import asyncio
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 from backend.app.core.models import ExecutionPlan, TaskStatus, Task
@@ -29,6 +30,17 @@ class ExecutionKernel:
         with open(self.storage_path, 'w') as f:
             json.dump(data, f, indent=2)
         logger.info(f"Checkpoint saved: {len(plan.tasks)} tasks synchronized.")
+
+    def load_last_checkpoint(self) -> Optional[ExecutionPlan]:
+        """Recovers the last known state of the Execution DAG."""
+        import os
+        if not os.path.exists(self.storage_path):
+            return None
+        
+        with open(self.storage_path, 'r') as f:
+            data = json.load(f)
+            logger.info("Recovering Execution Plan from checkpoint...")
+            return ExecutionPlan(**data)
 
     def detect_deadlock(self, plan: ExecutionPlan) -> bool:
         """

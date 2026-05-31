@@ -3,14 +3,11 @@ import json
 import logging
 import os
 import uuid
-import google.generativeai as genai
+import subprocess
 from typing import Any, Dict, List, Optional
 from backend.app.core.models import AgentRole
 
 logger = logging.getLogger(__name__)
-
-# Configure Real Gemini API (Requires GEMINI_API_KEY environment variable)
-genai.configure(api_key=os.environ.get("GEMINI_API_KEY", "mock_key"))
 
 class BaseAgent(abc.ABC):
     """
@@ -27,27 +24,20 @@ class BaseAgent(abc.ABC):
     @abc.abstractmethod
     async def run_task(self, task_description: str, context: Dict[str, Any]) -> str:
         """
-        Executes a specific task. Uses LLM to decide which tools to call.
+        Executes a specific task.
         """
         pass
 
 class GeminiAgent(BaseAgent):
     """
-    Concrete implementation of an Agent powered by actual Google Gemini API.
+    100x Upgrade: Self-Referential Intelligence.
+    Uses the local Gemini CLI (me) as the reasoning brain.
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Initialize the actual Gemini 1.5 Pro model for massive context and complex reasoning
-        self.model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro-latest",
-            system_instruction=self.system_prompt
-        )
-
     async def run_task(self, task_description: str, context: Dict[str, Any]) -> str:
-        logger.info(f"[{self.name}] Starting task via Gemini API: {task_description[:50]}...")
+        logger.info(f"[{self.name}] Delegating task to Gemini CLI Brain...")
         
-        # 1. Compile Context (Workspace, Blackboard)
-        workspace_context = context.get("workspace_dir", "Unknown workspace")
+        # 1. Compile Context
+        workspace_context = context.get("workspace_dir", os.getcwd())
         blackboard = context.get("blackboard")
         
         findings = ""
@@ -55,42 +45,52 @@ class GeminiAgent(BaseAgent):
             kb = await blackboard.get_knowledge_base()
             findings = json.dumps(kb, indent=2)
 
+        # Formulate the prompt for the CLI
         prompt = f"""
-        TASK TO EXECUTE:
+        Role: {self.system_prompt}
+        
+        Context:
+        - Workspace: {workspace_context}
+        - Shared Knowledge: {findings}
+        
+        Current Task:
         {task_description}
-
-        WORKSPACE CONTEXT: {workspace_context}
         
-        EXISTING KNOWLEDGE (Blackboard):
-        {findings}
-        
-        Execute the task and return the final detailed result.
+        Execute the task and provide a high-density intelligence report.
         """
 
         try:
-            # 2. Actual API Call to Gemini
-            if os.environ.get("GEMINI_API_KEY"):
-                response = self.model.generate_content(prompt)
-                result = response.text
-                logger.info(f"[{self.name}] Task completed successfully via Gemini.")
-                return result
-            else:
-                # Safe fallback if no key is set so the local repo doesn't crash instantly
-                logger.warning(f"[{self.name}] GEMINI_API_KEY not found. Simulating response.")
-                return f"[{self.name}] Simulated execution for: {task_description}"
+            # 2. Call local Gemini CLI in non-interactive mode
+            # This uses the user's existing login and agentic capabilities
+            logger.info(f"[{self.name}] Executing 'gemini --prompt'...")
+            
+            result = subprocess.run(
+                ["gemini", "--prompt", prompt],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            
+            output = result.stdout.strip()
+            logger.info(f"[{self.name}] Gemini CLI returned result ({len(output)} chars).")
+            return output
 
+        except subprocess.CalledProcessError as e:
+            logger.error(f"[{self.name}] Gemini CLI Error: {e.stderr}")
+            return f"Error executing task: {e.stderr}"
         except Exception as e:
-            logger.error(f"[{self.name}] Gemini API Error: {str(e)}")
+            logger.error(f"[{self.name}] Execution Error: {str(e)}")
             raise
 
 class AgentFactory:
     @staticmethod
     def create_agent(role: AgentRole, goal_context: Optional[str] = None) -> BaseAgent:
+        # Define prompts and tools based on role
         if role == AgentRole.RESEARCHER:
             return GeminiAgent(
                 name="ResearchAgent_01",
                 role=role,
-                system_prompt="You are a senior researcher. Synthesize complex data into high-density actionable intelligence.",
+                system_prompt="You are a senior researcher. Search the web and analyze documents to find actionable facts.",
                 tools=[] 
             )
         
@@ -105,4 +105,4 @@ class AgentFactory:
                 tools=[]
             )
 
-        return GeminiAgent(name="Generalist", role=role, system_prompt="You are a highly capable generalist AI coworker.", tools=[])
+        return GeminiAgent(name="Generalist", role=role, system_prompt="You are a highly capable digital teammate.", tools=[])

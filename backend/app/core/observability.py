@@ -31,22 +31,32 @@ class ObservabilityLayer:
         self.verified_tasks_completed = 0 # ACS Numerator
         self.human_touch_count = 0 # HTC
         self.repair_attempts = 0
-        self.repair_successes = 0
+        self.repair_successes = 0 # Moved from fail to pass
+        self.repair_degradations = 0 # Made output worse
+        self.first_attempt_passes = 0
         
         # Judgment & Behavioral Metrics
         self.judgment_decisions: List[Dict[str, Any]] = [] 
         self.ambiguity_detected = False
         self.clarification_questions: List[str] = []
 
-    def record_repair(self, success: bool):
+    def record_repair(self, improved: bool, worsened: bool = False):
         self.repair_attempts += 1
-        if success:
+        if improved:
             self.repair_successes += 1
+        if worsened:
+            self.repair_degradations += 1
 
-    def get_repair_success_rate(self) -> float:
-        if self.repair_attempts == 0:
-            return 1.0
-        return self.repair_successes / self.repair_attempts
+    def get_repair_efficacy(self) -> Dict[str, Any]:
+        """Detailed metrics on whether autonomous repairs are working."""
+        total = self.repair_attempts
+        if total == 0:
+            return {"status": "NO_REPAIRS"}
+        return {
+            "total_attempts": total,
+            "success_rate": self.repair_successes / total,
+            "degradation_rate": self.repair_degradations / total
+        }
 
     def get_autonomous_completion_score(self) -> float:
         """ACS = Verified Tasks Completed / Total Tasks"""

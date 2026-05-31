@@ -1,0 +1,14 @@
+{
+  "goal": "Research Indian semiconductor trends (Scenario: Primary Search API is disabled).",
+  "tasks": {
+    "task_1": {
+      "id": "task_1",
+      "description": "Initial research on the goal: Research Indian semiconductor trends (Scenario: Primary Search API is disabled).\n\nPREVIOUS_CRITIQUE: FAIL: Output contains critical errors. REPAIR_INSTRUCTIONS: Use fallback source.",
+      "assigned_role": "Researcher",
+      "dependencies": [],
+      "status": "COMPLETED",
+      "result": "Repaired: Utilized cached internal knowledge base. Results: [Semiconductor trends...]",
+      "artifacts": []
+    }
+  }
+}

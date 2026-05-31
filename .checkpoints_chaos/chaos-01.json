@@ -1,0 +1,14 @@
+{
+  "goal": "Process the provided research folder (Scenario: Contains 2 corrupted PDFs).",
+  "tasks": {
+    "task_1": {
+      "id": "task_1",
+      "description": "Initial research on the goal: Process the provided research folder (Scenario: Contains 2 corrupted PDFs).\n\nPREVIOUS_CRITIQUE: FAIL: Output contains critical errors. REPAIR_INSTRUCTIONS: Use fallback source.",
+      "assigned_role": "Researcher",
+      "dependencies": [],
+      "status": "COMPLETED",
+      "result": "Repaired: Extracted text via OCR fallback. Content: [Strategic data points...]",
+      "artifacts": []
+    }
+  }
+}

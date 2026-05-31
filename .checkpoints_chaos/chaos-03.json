@@ -1,0 +1,14 @@
+{
+  "goal": "Analyze AI robotics market (Scenario: Pivot to 'Humanoid only' halfway).",
+  "tasks": {
+    "task_1": {
+      "id": "task_1",
+      "description": "Initial research on the goal: Analyze AI robotics market (Scenario: Pivot to 'Humanoid only' halfway).",
+      "assigned_role": "Researcher",
+      "dependencies": [],
+      "status": "COMPLETED",
+      "result": "Autonomous result for: Initial research on the goal: Analyze AI robotics market (Scenario: Pivot to 'Humanoid only' halfway).",
+      "artifacts": []
+    }
+  }
+}

@@ -34,24 +34,28 @@ class AgentSwarm:
         results = await asyncio.gather(*[_worker(item) for item in items])
         return results
 
+from backend.app.core.models import Task, TaskStatus, AgentRole
+
 class ReflectionEngine:
     """
     Implements the Plan -> Execute -> Critique -> Repair loop.
     Ensures agents don't just 'finish', but 'succeed'.
     """
-    def __init__(self, critique_agent_role: str = "QA"):
+    def __init__(self, obs=None, critique_agent_role: AgentRole = AgentRole.COORDINATOR):
         self.critique_agent = AgentFactory.create_agent(critique_agent_role)
+        self.obs = obs
 
-    async def execute_with_reflection(self, task: Task, execution_coro: Coroutine, max_retries: int = 3) -> str:
+    async def execute_with_reflection(self, task: Task, execution_factory: Callable[[], Coroutine], max_retries: int = 3) -> str:
         attempt = 0
         current_result = ""
+        initial_failed = False
         
         while attempt < max_retries:
             attempt += 1
             logger.info(f"Reflection Loop: Attempt {attempt} for task {task.id}")
             
-            # 1. Execute
-            current_result = await execution_coro
+            # 1. Execute via factory to get fresh coroutine
+            current_result = await execution_factory()
             
             # 2. Critique
             critique_prompt = f"""
@@ -63,16 +67,25 @@ class ReflectionEngine:
             Return 'PASSED' if perfect, otherwise provide detailed 'REPAIR_INSTRUCTIONS'.
             """
             critique = await self.critique_agent.run_task(critique_prompt, {})
+            logger.info(f"Critique Output: '{critique}'")
             
             if "PASSED" in critique.upper():
                 logger.info(f"Task {task.id} passed reflection.")
+                if initial_failed and self.obs:
+                    # Successfully repaired!
+                    self.obs.record_repair(improved=True)
+                elif self.obs:
+                    self.obs.first_attempt_passes += 1
                 return current_result
             
+            initial_failed = True
             logger.warning(f"Task {task.id} failed critique. Repairing based on: {critique[:100]}...")
             
+            # Scenario Check for Degradation (Simulation)
+            if "Error" in current_result and "Error" in critique:
+                 if self.obs: self.obs.record_repair(improved=False, worsened=True)
+            
             # 3. Repair - modify the next execution attempt with the critique
-            # In a real system, we wrap the original coro or update the agent's prompt
-            # For this scaffold, we simulate the refinement
             task.description = f"{task.description}\n\nPREVIOUS_CRITIQUE: {critique}"
             
         return current_result

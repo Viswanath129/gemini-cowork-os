@@ -41,7 +41,7 @@ class BenchmarkRunner:
                     "duration": duration,
                     "acs": self.orchestrator.obs_global.get_autonomous_completion_score(),
                     "htc": self.orchestrator.obs_global.human_touch_count,
-                    "repair_rate": self.orchestrator.obs_global.get_repair_success_rate()
+                    "repair_efficacy": self.orchestrator.obs_global.get_repair_efficacy()
                 })
                 
             except Exception as e:

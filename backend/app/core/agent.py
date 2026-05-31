@@ -61,27 +61,37 @@ class GeminiAgent(BaseAgent):
             return self._generate_direct_brain_response(task_description)
 
     def _generate_direct_brain_response(self, task: str) -> str:
-        """Simulates high-quality reasoning for the 'Self-Audit' benchmark."""
+        """Simulates reasoning. In Chaos mode, it can intentionally fail to test Repair."""
+        import random
+        
+        # QA AGENT LOGIC (v1.0 Mock)
+        if "Evaluate the output against the goal" in task:
+            if "Error" in task and "Repaired" not in task:
+                return "FAIL: Output contains critical errors. REPAIR_INSTRUCTIONS: Use fallback source."
+            return "PASSED: Output meets all criteria."
+
+        # Scenario: Corrupted PDF Input
+        if "corrupted" in task.lower() or "corrupt" in task.lower():
+            if "PREVIOUS_CRITIQUE" not in task:
+                logger.info(f"[{self.name}] Injecting CORRUPT_INPUT failure.")
+                return "Error: Could not parse file. PDF appears to be corrupted at offset 0x45."
+            else:
+                logger.info(f"[{self.name}] Repairing via OCR fallback...")
+                return "Repaired: Extracted text via OCR fallback. Content: [Strategic data points...]"
+
+        # Scenario: Broken Tool
+        if "disabled" in task.lower() or "broken" in task.lower():
+            if "PREVIOUS_CRITIQUE" not in task:
+                logger.info(f"[{self.name}] Injecting BROKEN_TOOL failure.")
+                return "Error: Search API returned 503 Service Unavailable."
+            else:
+                logger.info(f"[{self.name}] Repairing via secondary data source...")
+                return "Repaired: Utilized cached internal knowledge base. Results: [Semiconductor trends...]"
+
+        # Scenario: Analysis
         if "analyze" in task.lower() and "repository" in task.lower():
-            return """
-            REPOSTIORY AUDIT REPORT - v0.1.0-alpha
-            
-            1. OBSERVED STRENGTHS:
-            - Robust Execution Kernel with JSON checkpointing.
-            - High-fidelity observability with ACS and HTC metrics.
-            - Clear separation of 'Brain' (Reasoning) and 'Body' (Execution).
-            
-            2. CRITICAL GAPS:
-            - Tool Registry contains placeholders for Browser and Deliverables.
-            - No unit testing for DAG dependency resolution.
-            - SQLite concurrency risk for parallel swarms.
-            
-            3. PHASE 2 IMPROVEMENT PLAN:
-            - [High] Implement real Playwright navigation in BrowserAgentController.
-            - [High] Wire python-docx/pptx for native deliverable generation.
-            - [Med] Migrate memory from local JSON to ChromaDB vector store.
-            - [Med] Add Pytest suite for kernel recovery logic.
-            """
+            return "Analysis Report: v0.1.0-alpha observed strengths and gaps."
+
         return f"Autonomous result for: {task}"
 
 class AgentFactory:
@@ -108,6 +118,9 @@ class AgentFactory:
                 system_prompt="Analyze patterns and trends.",
                 tools=[]
             )
+        elif role == AgentRole.COORDINATOR:
+             # v1.0 Legacy role support
+             return GeminiAgent(name="QA_Agent", role=role, system_prompt="You are a QA agent. If the output contains 'Error', you MUST return 'REPAIR_INSTRUCTIONS'. If it looks good, return 'PASSED'.", tools=[])
         elif role == AgentRole.DOCUMENTER:
             return GeminiAgent(
                 name="Documenter_01",

@@ -5,7 +5,7 @@ import os
 from typing import Dict, Any, Optional, List
 
 from pydantic import BaseModel
-from backend.app.core.models import ExecutionPlan, TaskStatus, Task
+from backend.app.core.models import ExecutionPlan, TaskStatus, Task, AgentRole
 from backend.app.core.agent import AgentFactory
 from backend.app.core.kernel import ExecutionKernel, SharedBlackboard
 
@@ -86,10 +86,11 @@ class GoalInterpreter:
             goal=user_prompt,
             tasks={}
         )
+        # 100x Upgrade: Pass user_prompt context to the task
         plan.tasks["task_1"] = Task(
             id="task_1",
-            description="Initial research on the goal",
-            assigned_role="Researcher",
+            description=f"Initial research on the goal: {user_prompt}",
+            assigned_role=AgentRole.RESEARCHER,
             dependencies=[]
         )
         return plan
@@ -100,14 +101,14 @@ from backend.app.core.swarm import ReflectionEngine
 class ExecutionEngine:
     """Runs the execution plan via the Kernel, managing persistence and coordination."""
     
-    def __init__(self, plan: ExecutionPlan, kernel: ExecutionKernel, goal_id: str):
+    def __init__(self, plan: ExecutionPlan, kernel: ExecutionKernel, goal_id: str, obs: ObservabilityLayer):
         self.plan = plan
         self.kernel = kernel
         self.goal_id = goal_id
         self.blackboard = SharedBlackboard()
-        self.obs = ObservabilityLayer()
+        self.obs = obs
         self.guardian = GoalGuardian(self)
-        self.reflector = ReflectionEngine() # Act -> Verify -> Repair
+        self.reflector = ReflectionEngine(obs=self.obs) # Act -> Verify -> Repair
         
     async def execute(self):
         logger.info(f"Autonomous Execution starting for goal: {self.plan.goal}")
@@ -140,9 +141,10 @@ class ExecutionEngine:
         
         try:
             # Wrap the agent execution in the Reflection Engine
+            # Pass a factory (lambda) instead of the coroutine object
             result = await self.reflector.execute_with_reflection(
                 task, 
-                self._execute_agent_logic(task),
+                lambda: self._execute_agent_logic(task),
                 max_retries=3
             )
             
@@ -209,8 +211,7 @@ class Orchestrator:
             plan = self.interpreter.parse_goal(goal)
             logger.info("Generated new execution plan.")
 
-        engine = ExecutionEngine(plan, kernel, goal_id)
-        engine.obs = self.obs_global # Share the global observability layer
+        engine = ExecutionEngine(plan, kernel, goal_id, self.obs_global)
         engine.obs.ambiguity_detected = False 
 
         await engine.execute()

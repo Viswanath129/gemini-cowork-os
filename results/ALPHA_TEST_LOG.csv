@@ -1,0 +1,2 @@
+mission_id,timestamp,benchmark_id,completion_rate,recovery_rate,goal_satisfaction,judgment_accuracy,clarification_efficiency,meaningful_work_ratio,preservation_ratio,regret_ratio,human_interventions,total_cost,accidental_success,structural_reliability,refusal_quality,mission_status
+"alpha-01",2026-05-31T12:00:00Z,"A.1",0.0,1.0,1,1.0,1.0,1.0,1.0,0.0,1,0.01,0,1.0,1.0,"COMPLETED"

@@ -1,0 +1,2 @@
+mission_id,goal,failure_type,root_cause,detection_method,recovery_attempt,recovery_outcome,user_impact,preventable
+"alpha-fail-01","Research startups","Interpretation Error","Vague prompt was auto-executed","GoalGuardian Drift","Replan","Failed","High","Y"

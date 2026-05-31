@@ -16,6 +16,7 @@ The moment a metric becomes a target, it stops being a good metric. All quantita
 | **F** | Contradictory Human | Consistency | Multiple conflicting goal shifts within 30 minutes. |
 | **Z** | Silent User | Asynchronous Autonomy | Submit vague goal and provide ZERO clarification responses. |
 | **Ω** | Decision Support | Teammate Reasoning | "Help me make a decision." (No specific format or deliverable). |
+| **K** | Unknown Dataset | Mission Ownership | Provide random Kaggle CSV. Goal: "Deliver best predictive model + Full report." |
 
 ## 2. Success Metrics & Targets
 

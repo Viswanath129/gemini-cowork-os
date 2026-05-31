@@ -16,9 +16,18 @@ The moment a metric becomes a target, it stops being a good metric. All quantita
 | **F** | Contradictory Human | Consistency | Multiple conflicting goal shifts within 30 minutes. |
 | **Z** | Silent User | Asynchronous Autonomy | Submit vague goal and provide ZERO clarification responses. |
 | **Ω** | Decision Support | Teammate Reasoning | "Help me make a decision." (No specific format or deliverable). |
-| **K** | Unknown Dataset | Mission Ownership | Provide random Kaggle CSV. Goal: "Deliver best predictive model + Full report." |
+| **K** | Unknown Dataset | Mission Ownership | Provide random Kaggle CSV. Goal: "Deliver best predictive model + Full report." Requires explicit Success Metric definition in Mission Brief. |
 
 ## 2. Success Metrics & Targets
+
+### 2.1 Benchmark K Detailed Metrics
+- **Mission Success**: Did all requested deliverables (model, report, notebook) exist? (Yes/No)
+- **Technical Success**: Model performance against the *explicitly defined* success metric (e.g., F1 > 0.9).
+- **Strategic Success**: Would a senior data scientist agree with the selected trade-offs and final recommendation?
+- **Repair Success**: Were initial tool or data parsing failures autonomously repaired?
+- **Human Touch Count (HTC)**: Total number of manual interventions required.
+
+### 2.2 System-Wide Targets
 
 | Metric | Target | Definition |
 | :--- | :--- | :--- |

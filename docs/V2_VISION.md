@@ -2,13 +2,18 @@
 
 From Autonomous Execution to a **True Digital Teammate**. 
 
+## The Core Pillar: Mission Ownership Engine
+The defining characteristic of v2 is not more tools or agents, but **Mission Ownership**. In v1, the system ran tasks. In v2, the system **owns outcomes**.
+
+### The Ownership Pipeline
+1. **Mission Acceptance**: The system analyzes the goal, identifies the strategic intent ("Why"), and explicitly accepts responsibility for the outcome.
+2. **Autonomous Iteration**: Cowork executes the entire lifecycle (EDA -> Modeling -> Evaluation -> Delivery) without intermediate prompting.
+3. **Outcome Delivery**: The system returns finished artifacts (pkl models, notebooks, decks) along with a summary of the strategic decisions made.
+
 ## The 5 Pillars of v2
 
 ### 1. Universal Tool Layer (The "Hands")
-Moving beyond basic filesystem and browser tools to a unified MCP-driven interface for:
-- Communications: Gmail, Slack, WhatsApp, LinkedIn.
-- Productivity: Google Drive, Notion, Jira, Trello.
-- Development: GitHub, Terminal, Cloud IDEs.
+Moving beyond basic filesystem and browser tools to a unified MCP-driven interface for Gmail, Slack, GitHub, and Cloud IDEs.
 
 ### 2. Persistent Goals (The "Mission")
 Transitioning from "Complete Task" to "Achieve Outcome." 

@@ -1,16 +1,21 @@
 # Architecture Overview
 
-Gemini Cowork OS shifts the focus from "Prompt -> Response" to a persistent, parallel, and observable operating environment.
+Gemini Cowork OS shifts the focus from "Prompt -> Response" to a persistent, parallel, and observable operating environment that **owns outcomes**.
 
-## Data Flow Diagram
+## The Mission Ownership Pipeline
 
 ```mermaid
 graph TD
     User([User]) -->|High-Level Goal| API[FastAPI Gateway]
-    API --> Orchestrator
+    
+    subgraph Ownership Layer
+        API --> Orchestrator
+        Orchestrator -->|Intent Discovery| Brief[Mission Brief]
+        Brief -->|Mission Accepted| State[Owned Mission State]
+    end
     
     subgraph Execution Layer
-        Orchestrator -->|Detects Ambiguity| Interpreter[Goal Interpreter]
+        State --> Interpreter[Goal Interpreter]
         Interpreter -->|Generates DAG| Kernel[Execution Kernel]
         Kernel -->|Checkpoints State| DB[(Local Storage)]
         Kernel -->|Dispatches| Engine[Execution Engine]
@@ -27,16 +32,11 @@ graph TD
         A3 <--> Blackboard
     end
     
-    subgraph Governance Layer
+    subgraph Delivery Layer
         Engine --> Guardian[Goal Guardian]
-        Guardian -->|Re-anchors| Orchestrator
         Engine --> Obs[Observability Layer]
-        Obs -->|Metrics| MissionControl[Mission Control UI]
-    end
-    
-    subgraph Deliverables
         A3 --> Factory[Deliverable Factory]
-        A3 --> Trust[Trust Engine]
+        Factory -->|Finished Outcome| User
     end
 ```
 

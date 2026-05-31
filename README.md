@@ -2,7 +2,7 @@
 
 An experimental operating system framework for studying human-AI decision making. 
 
-**Lead Differentiator**: Mission Alignment Before Autonomy. We prioritize the 'Understand -> Clarify -> Align' phase to ensure we solve the *right* problem before spawning a single agent.
+**Lead Differentiator**: **Mission Ownership Engine.** We move beyond simple "Task Execution" to "Outcome Ownership." The system doesn't just run code; it accepts responsibility for achieving the final strategic objective (e.g., training the best model, delivering a verified report) end-to-end.
 
 **Current Status**: v0.1.0-alpha (Architecture Preview)
 
